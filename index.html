@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>RMV 계산기</title>
+</head>
+<body>
+  <h2>RMV 계산기 (단순 버전)</h2>
+
+  <label>사용한 공기량 (L): <input type="number" id="usedAir" /></label><br/>
+  <label>평균 수심 (m): <input type="number" id="avgDepth" /></label><br/>
+  <label>다이빙 시간 (분): <input type="number" id="diveTime" /></label><br/><br/>
+
+  <button onclick="calculateRMV()">계산하기</button>
+
+  <p id="result"></p>
+
+  <script>
+    function calculateRMV() {
+      const usedAir = parseFloat(document.getElementById("usedAir").value);
+      const avgDepth = parseFloat(document.getElementById("avgDepth").value);
+      const diveTime = parseFloat(document.getElementById("diveTime").value);
+
+      if (isNaN(usedAir) || isNaN(avgDepth) || isNaN(diveTime) || diveTime <= 0) {
+        document.getElementById("result").innerText = "모든 값을 정확히 입력해주세요.";
+        return;
+      }
+
+      const ata = avgDepth / 10 + 1;
+      const ataMinutes = ata * diveTime;
+      const rmv = usedAir / ataMinutes;
+      const roundedRMV = Math.round(rmv * 10) / 10;
+
+      document.getElementById("result").innerText = `RMV = ${roundedRMV} L/min`;
+    }
+  </script>
+</body>
+</html>

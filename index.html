@@ -184,10 +184,10 @@
 
     const ata = depth * 0.1 + 1;
     const end_bar = (end * 0.1 + 1) * 0.79;
-    const he = Math.ceil((1 - (end_bar / ata)) * 100 / 5) * 5;
     const o2 = Math.round((1.4 / ata) * 100);
-    const n2 = 100 - he - o2;
-
+    const n2 = end_bar;
+    const he = Math.ceil((1 - end_bar - o2)) * 100 / 5) * 5;
+    
     const o2bar = (fill * o2) / 100;
     const hebar = (fill * he) / 100;
     const n2bar = fill - o2bar - hebar;

@@ -48,7 +48,7 @@
 <body>
   <div class="tab-container">
     <button class="tab-button active" onclick="switchTab('rmv-single')">RMV (싱글)</button>
-    <button class="tab-button" onclick="switchTab('rmv-double')">RMV 계산기 (더블탱크 22L + 데코탱크 11L)</button>
+    <button class="tab-button" onclick="switchTab('rmv-double')">RMV (더블)</button>
     <button class="tab-button" onclick="switchTab('nitrox')">나이트록스 블렌딩</button>
     <button class="tab-button" onclick="switchTab('mod')">MOD 계산</button>
     <button class="tab-button" onclick="switchTab('trimix')">트라이믹스 블렌딩</button>
@@ -157,8 +157,9 @@
       return;
     }
     const o2bar = pressure * (oxy - 21) / (100 - 21);
-    const adjusted = o2bar - 1;
-    nitrox_output.textContent = `산소 100% 주입량: ${adjusted.toFixed(1)} bar (- 1 bar 했음)`;
+    const rounded = Math.round(o2bar); // 1의 자리에서 반올림
+    const adjusted = rounded - 1;
+    nitrox_output.textContent = `산소 100% : ${adjusted.toFixed(1)} bar (${rounded} - 1 bar)`;
   }
 
   function calcMOD() {

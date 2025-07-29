@@ -187,19 +187,18 @@
     const o2 = Math.round((1.4 / ata) * 100);
     const n2 = end_bar;
     const he = Math.ceil((1 - end_bar - o2)) * 100 / 5) * 5;
-    
-    const o2bar = (fill * o2) / 100;
-    const hebar = (fill * he) / 100;
-    const n2bar = fill - o2bar - hebar;
 
-    const eanx = (o2 / (1 - he / 100)).toFixed(1);
+    const eanx = (o2 / (1 - he / 100)).toFixed(2);
+    
+    const o2bar = ((o2/100)-0.21)/0.79*(fill - (he/100*fill)).toFixed(1);
+    const hebar = (fill * he) / 100;
+ 
+
+
     trimix_output.textContent =
       `트라이믹스 : TX ${o2}% / ${he}%\n` +
       `O₂: ${o2bar.toFixed(1)} bar\n` +
-      `He: ${hebar.toFixed(1)} bar\n` +
-      `N₂: ${n2bar.toFixed(1)} bar\n` +
-      `누적 압력: ${(o2bar + hebar + n2bar).toFixed(1)} bar\n` +
-      `EAN_x: ${eanx} (산소 ÷ (1 - He%))`;
+      `He: ${hebar.toFixed(1)} bar`;
   }
 </script>
 </body>

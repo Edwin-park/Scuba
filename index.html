@@ -1,83 +1,56 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>스쿠버 다이빙 계산기</title>
   <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      margin: 0;
-      padding: 20px;
-      background: #f0f2f5;
-    }
-    h1 {
-      text-align: center;
-      color: #2c3e50;
-    }
-    .tabs {
-      display: flex;
-      justify-content: center;
-      margin-bottom: 20px;
-    }
+    body { font-family: 'Segoe UI', sans-serif; padding: 20px; background: #f0f2f5; }
+    h1 { text-align: center; color: #2c3e50; }
+    .tabs { display: flex; justify-content: center; margin-bottom: 20px; flex-wrap: wrap; }
     .tabs button {
-      background-color: #e0e0e0;
+      padding: 10px 20px;
+      margin: 4px;
       border: none;
-      padding: 12px 24px;
+      background: #ddd;
       cursor: pointer;
-      margin: 0 5px;
       border-radius: 8px 8px 0 0;
       font-weight: bold;
-      color: #555;
     }
-    .tabs button.active {
-      background-color: #ffffff;
-      border-bottom: 2px solid white;
-      color: #000;
-    }
+    .tabs button.active { background: #fff; border-bottom: 2px solid white; color: #000; }
     .tab-content {
       display: none;
-      background: #ffffff;
-      padding: 20px;
-      border-radius: 0 8px 8px 8px;
       max-width: 500px;
       margin: auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 0 8px 8px 8px;
       box-shadow: 0 0 8px rgba(0,0,0,0.1);
     }
-    .tab-content.active {
-      display: block;
-    }
-    label {
-      display: block;
-      margin: 12px 0 4px;
-      color: #333;
-    }
+    .tab-content.active { display: block; }
+    label { display: block; margin: 10px 0 5px; }
     input {
       width: 100%;
       padding: 10px;
       margin-bottom: 12px;
-      border: 1px solid #ccc;
       border-radius: 6px;
+      border: 1px solid #ccc;
       box-sizing: border-box;
     }
+    .yellow-input { background-color: #ffff99; }
     button.calc-btn {
+      width: 100%;
+      padding: 12px;
       background-color: #3498db;
       color: white;
       border: none;
-      padding: 12px;
-      width: 100%;
       border-radius: 6px;
       font-size: 16px;
       cursor: pointer;
     }
-    button.calc-btn:hover {
-      background-color: #2980b9;
-    }
-    p {
-      margin-top: 16px;
-      font-size: 16px;
-      color: #2c3e50;
-    }
+    button.calc-btn:hover { background-color: #2980b9; }
+    p, ul { margin-top: 16px; color: #2c3e50; font-size: 16px; }
+    ul li { margin-bottom: 5px; }
   </style>
 </head>
 <body>
@@ -87,8 +60,10 @@
 <div class="tabs">
   <button onclick="showTab('rmv')" class="active">RMV 계산기</button>
   <button onclick="showTab('nitrox')">나이트록스 블렌딩</button>
+  <button onclick="showTab('trimix')">Trimix 블렌딩</button>
 </div>
 
+<!-- RMV 계산기 -->
 <div id="rmv" class="tab-content active">
   <h2>RMV 계산기</h2>
   <label>사용한 공기량 (L):</label>
@@ -101,6 +76,7 @@
   <p id="rmvResult"></p>
 </div>
 
+<!-- 나이트록스 블렌딩 -->
 <div id="nitrox" class="tab-content">
   <h2>나이트록스 블렌딩 계산기</h2>
   <label>목표 나이트록스 (%) :</label>
@@ -109,6 +85,19 @@
   <input type="number" id="totalPressure">
   <button class="calc-btn" onclick="calculateNitrox()">계산하기</button>
   <p id="nitroxResult"></p>
+</div>
+
+<!-- Trimix 블렌딩 -->
+<div id="trimix" class="tab-content">
+  <h2>Trimix 헬륨 블렌딩 계산기</h2>
+  <label>총 충전 압력 (bar):</label>
+  <input type="number" id="tx_totalPressure" class="yellow-input">
+  <label>목표 O₂ 비율 (%):</label>
+  <input type="number" id="tx_o2" class="yellow-input">
+  <label>목표 He 비율 (%):</label>
+  <input type="number" id="tx_he" class="yellow-input">
+  <button class="calc-btn" onclick="calculateTrimix()">계산하기</button>
+  <p id="trimixResult"></p>
 </div>
 
 <script>
@@ -144,12 +133,35 @@
 
     const rawO2Bar = (o2percent - 21) / 79 * totalBar;
     const roundedO2Bar = Math.round(rawO2Bar);
-    const adjustedO2Bar = roundedO2Bar - 1;  // -1 bar 처리
+    const adjustedO2Bar = roundedO2Bar - 1; // -1 bar 보정
     const airBar = totalBar - adjustedO2Bar;
 
     document.getElementById("nitroxResult").innerText =
       `100% 산소: ${adjustedO2Bar} bar (계산값 ${roundedO2Bar} bar 에서 -1 bar 적용)\n` +
       `공기: ${airBar} bar (총 ${totalBar} bar 기준)`;
+  }
+
+  function calculateTrimix() {
+    const total = parseFloat(document.getElementById("tx_totalPressure").value);
+    const o2 = parseFloat(document.getElementById("tx_o2").value);
+    const he = parseFloat(document.getElementById("tx_he").value);
+    if (isNaN(total) || isNaN(o2) || isNaN(he) || o2 + he > 1) {
+      document.getElementById("trimixResult").innerText = "입력을 확인하세요. (단위: 소수 또는 0~1)";
+      return;
+    }
+
+    const eanx = o2 / (1 - he);
+    const heBar = total * he;
+    const o2Bar = ((eanx - 0.21) / 0.79) * (total - heBar);
+    const airBar = total - heBar - o2Bar;
+
+    document.getElementById("trimixResult").innerHTML =
+      `<ul>
+        <li>EAN_x = ${eanx.toFixed(3)}</li>
+        <li>O₂ 주입압력 = ${o2Bar.toFixed(1)} bar</li>
+        <li>He 주입압력 = ${heBar.toFixed(1)} bar</li>
+        <li>Air 주입압력 = ${airBar.toFixed(1)} bar</li>
+      </ul>`;
   }
 </script>
 

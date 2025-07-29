@@ -2,86 +2,156 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>다이빙 계산기</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>스쿠버 다이빙 계산기</title>
   <style>
-    body { font-family: sans-serif; padding: 20px; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #f0f2f5;
+    }
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+    }
+    .tabs {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
     .tabs button {
-      padding: 10px 20px;
+      background-color: #e0e0e0;
+      border: none;
+      padding: 12px 24px;
       cursor: pointer;
-      margin-right: 5px;
-      border: 1px solid #ccc;
-      background-color: #f1f1f1;
+      margin: 0 5px;
+      border-radius: 8px 8px 0 0;
+      font-weight: bold;
+      color: #555;
     }
     .tabs button.active {
-      background-color: #ddd;
+      background-color: #ffffff;
+      border-bottom: 2px solid white;
+      color: #000;
     }
-    .tab-content { display: none; margin-top: 20px; }
-    .tab-content.active { display: block; }
+    .tab-content {
+      display: none;
+      background: #ffffff;
+      padding: 20px;
+      border-radius: 0 8px 8px 8px;
+      max-width: 500px;
+      margin: auto;
+      box-shadow: 0 0 8px rgba(0,0,0,0.1);
+    }
+    .tab-content.active {
+      display: block;
+    }
+    label {
+      display: block;
+      margin: 12px 0 4px;
+      color: #333;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 12px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-sizing: border-box;
+    }
+    button.calc-btn {
+      background-color: #3498db;
+      color: white;
+      border: none;
+      padding: 12px;
+      width: 100%;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    button.calc-btn:hover {
+      background-color: #2980b9;
+    }
+    p {
+      margin-top: 16px;
+      font-size: 16px;
+      color: #2c3e50;
+    }
   </style>
 </head>
 <body>
-  <h1>스쿠버 다이빙 계산기</h1>
 
-  <div class="tabs">
-    <button onclick="showTab('rmv')" class="active">RMV 계산기</button>
-    <button onclick="showTab('nitrox')">나이트록스 블렌딩</button>
-  </div>
+<h1>스쿠버 다이빙 계산기</h1>
 
-  <!-- RMV 계산기 -->
-  <div id="rmv" class="tab-content active">
-    <h2>RMV 계산기</h2>
-    <label>사용한 공기량 (L): <input type="number" id="usedAir"></label><br/>
-    <label>평균 수심 (m): <input type="number" id="avgDepth"></label><br/>
-    <label>다이빙 시간 (분): <input type="number" id="diveTime"></label><br/><br/>
-    <button onclick="calculateRMV()">계산하기</button>
-    <p id="rmvResult"></p>
-  </div>
+<div class="tabs">
+  <button onclick="showTab('rmv')" class="active">RMV 계산기</button>
+  <button onclick="showTab('nitrox')">나이트록스 블렌딩</button>
+</div>
 
-  <!-- 나이트록스 블렌딩 계산기 -->
-  <div id="nitrox" class="tab-content">
-    <h2>나이트록스 블렌딩 계산기 (압력 기반)</h2>
-    <label>목표 나이트록스 (%) : <input type="number" id="targetO2"></label><br/>
-    <label>총 압력 (bar) : <input type="number" id="totalPressure"></label><br/><br/>
-    <button onclick="calculateNitrox()">계산하기</button>
-    <p id="nitroxResult"></p>
-  </div>
+<div id="rmv" class="tab-content active">
+  <h2>RMV 계산기</h2>
+  <label>사용한 공기량 (L):</label>
+  <input type="number" id="usedAir">
+  <label>평균 수심 (m):</label>
+  <input type="number" id="avgDepth">
+  <label>다이빙 시간 (분):</label>
+  <input type="number" id="diveTime">
+  <button class="calc-btn" onclick="calculateRMV()">계산하기</button>
+  <p id="rmvResult"></p>
+</div>
 
-  <script>
-    function showTab(tabId) {
-      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-      document.querySelectorAll('.tabs button').forEach(el => el.classList.remove('active'));
-      document.getElementById(tabId).classList.add('active');
-      event.target.classList.add('active');
+<div id="nitrox" class="tab-content">
+  <h2>나이트록스 블렌딩 계산기</h2>
+  <label>목표 나이트록스 (%) :</label>
+  <input type="number" id="targetO2">
+  <label>총 압력 (bar) :</label>
+  <input type="number" id="totalPressure">
+  <button class="calc-btn" onclick="calculateNitrox()">계산하기</button>
+  <p id="nitroxResult"></p>
+</div>
+
+<script>
+  function showTab(tabId) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tabs button').forEach(el => el.classList.remove('active'));
+    document.getElementById(tabId).classList.add('active');
+    event.target.classList.add('active');
+  }
+
+  function calculateRMV() {
+    const usedAir = parseFloat(document.getElementById("usedAir").value);
+    const avgDepth = parseFloat(document.getElementById("avgDepth").value);
+    const diveTime = parseFloat(document.getElementById("diveTime").value);
+    if (isNaN(usedAir) || isNaN(avgDepth) || isNaN(diveTime) || diveTime <= 0) {
+      document.getElementById("rmvResult").innerText = "모든 값을 정확히 입력해주세요.";
+      return;
+    }
+    const ata = avgDepth / 10 + 1;
+    const ataMinutes = ata * diveTime;
+    const rmv = usedAir / ataMinutes;
+    const rounded = Math.round(rmv * 10) / 10;
+    document.getElementById("rmvResult").innerText = `RMV = ${rounded} L/min`;
+  }
+
+  function calculateNitrox() {
+    const o2percent = parseFloat(document.getElementById("targetO2").value);
+    const totalBar = parseFloat(document.getElementById("totalPressure").value);
+    if (isNaN(o2percent) || isNaN(totalBar) || o2percent < 21 || o2percent > 100) {
+      document.getElementById("nitroxResult").innerText = "입력을 확인하세요 (21% ~ 100%).";
+      return;
     }
 
-    function calculateRMV() {
-      const usedAir = parseFloat(document.getElementById("usedAir").value);
-      const avgDepth = parseFloat(document.getElementById("avgDepth").value);
-      const diveTime = parseFloat(document.getElementById("diveTime").value);
-      if (isNaN(usedAir) || isNaN(avgDepth) || isNaN(diveTime) || diveTime <= 0) {
-        document.getElementById("rmvResult").innerText = "모든 값을 정확히 입력해주세요.";
-        return;
-      }
-      const ata = avgDepth / 10 + 1;
-      const ataMinutes = ata * diveTime;
-      const rmv = usedAir / ataMinutes;
-      const rounded = Math.round(rmv * 10) / 10;
-      document.getElementById("rmvResult").innerText = `RMV = ${rounded} L/min`;
-    }
+    const rawO2Bar = (o2percent - 21) / 79 * totalBar;
+    const roundedO2Bar = Math.round(rawO2Bar);
+    const adjustedO2Bar = roundedO2Bar - 1;  // -1 bar 처리
+    const airBar = totalBar - adjustedO2Bar;
 
-    function calculateNitrox() {
-      const o2percent = parseFloat(document.getElementById("targetO2").value);
-      const totalBar = parseFloat(document.getElementById("totalPressure").value);
-      if (isNaN(o2percent) || isNaN(totalBar) || o2percent < 21 || o2percent > 100) {
-        document.getElementById("nitroxResult").innerText = "입력을 확인하세요 (21% ~ 100%).";
-        return;
-      }
-      const o2Bar = (o2percent - 21) / 79 * totalBar;
-      const roundedO2 = Math.round(o2Bar);
-      const airBar = totalBar - roundedO2;
-      document.getElementById("nitroxResult").innerText = 
-        `100% 산소: ${roundedO2} bar, 공기: ${airBar} bar (총 ${totalBar} bar 기준)`;
-    }
-  </script>
+    document.getElementById("nitroxResult").innerText =
+      `100% 산소: ${adjustedO2Bar} bar (계산값 ${roundedO2Bar} bar 에서 -1 bar 적용)\n` +
+      `공기: ${airBar} bar (총 ${totalBar} bar 기준)`;
+  }
+</script>
+
 </body>
 </html>

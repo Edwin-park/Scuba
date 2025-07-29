@@ -159,7 +159,7 @@
     const o2bar = pressure * (oxy - 21) / (100 - 21);
     const rounded = Math.round(o2bar); // 1의 자리에서 반올림
     const adjusted = rounded - 1;
-    nitrox_output.textContent = `산소 100% : ${adjusted.toFixed(1)} bar (${rounded} - 1 bar)`;
+    nitrox_output.textContent = `산소 100% : ${adjusted} bar (${rounded} - 1 bar)`;
   }
 
   function calcMOD() {

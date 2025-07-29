@@ -57,20 +57,19 @@
     </div>
     <!-- 🔧 여기까지 나이트록스 계산기 HTML 끝 -->
 
-    <!-- ✅ 트라이믹스 블렌딩 계산기 -->
-    <!-- 🔧 여기부터 트라이믹스 계산기 HTML 시작 -->
-    <div class="tab-pane fade" id="trimix">
-      <div class="mt-4">
-        <label>목표 수심 (m):</label>
-        <input type="number" class="form-control yellow" id="depth">
-        <label>목표 END (m):</label>
-        <input type="number" class="form-control yellow" id="end">
-        <label>총 충전 압력 (bar):</label>
-        <input type="number" class="form-control yellow" id="fill">
-        <button class="btn btn-danger mt-3 w-100" onclick="calculateTrimix()">계산하기</button>
-        <pre id="trimixResult"></pre>
-      </div>
-    </div>
+<!-- 🔧 트라이믹스 계산기 HTML -->
+<div class="tab-pane fade" id="trimix">
+  <div class="mt-4">
+    <label>목표 수심 (m):</label>
+    <input type="number" class="form-control yellow" id="depth">
+    <label>목표 END (m):</label>
+    <input type="number" class="form-control yellow" id="end">
+    <label>총 충전 압력 (bar):</label>
+    <input type="number" class="form-control yellow" id="fill">
+    <button class="btn btn-danger mt-3 w-100" onclick="calculateTrimix()">계산하기</button>
+    <pre id="trimixResult"></pre>
+  </div>
+</div>
     <!-- 🔧 여기까지 트라이믹스 계산기 HTML 끝 -->
 
   </div>
@@ -112,41 +111,49 @@
   // 🔧 여기까지 나이트록스 계산기 함수
 
   // 🔧 여기부터 트라이믹스 계산기 함수
-  function calculateTrimix() {
-    const depth = parseFloat(document.getElementById("depth").value);
-    const end = parseFloat(document.getElementById("end").value);
-    const fill = parseFloat(document.getElementById("fill").value);
-    if (isNaN(depth) || isNaN(end) || isNaN(fill) || fill <= 0 || depth <= 0 || end < 0 || end >= depth) {
-      document.getElementById("trimixResult").innerText = "입력을 확인해주세요.";
-      return;
-    }
+function calculateTrimix() {
+  const depth = parseFloat(document.getElementById("depth").value);
+  const end = parseFloat(document.getElementById("end").value);
+  const fill = parseFloat(document.getElementById("fill").value);
 
-    const ata = depth / 10 + 1;
-    const o2frac = 1.4 / ata;
-    const he_raw = 1 - ((end + 10) / (depth + 10));
-    const he_frac = Math.ceil((he_raw * 100) / 5) * 5 / 100;
-    const eanx = o2frac / (1 - he_frac);
+  if (isNaN(depth) || isNaN(end) || isNaN(fill) || depth <= 0 || end < 0 || fill <= 0) {
+    document.getElementById("trimixResult").innerText = "값을 정확히 입력해주세요.";
+    return;
+  }
 
-    const he_bar = fill * he_frac;
-    const o2_bar = ((eanx - 0.21) / 0.79) * (fill - he_bar);
-    const air_bar = fill - he_bar - o2_bar;
+  const ppo2 = 1.4;
+  const pressure = depth * 0.1 + 1;
+  const endBar = pressure * 0.79;
 
-    const cum1 = o2_bar;
-    const cum2 = o2_bar + he_bar;
+  const o2Frac = +(ppo2 / pressure).toFixed(2);
+  const heFracRaw = (pressure - endBar) / pressure;
+  const heFrac = Math.ceil(heFracRaw * 100 / 5) * 5 / 100;
+  const n2Frac = +(1 - o2Frac - heFrac).toFixed(2);
 
-    document.getElementById("trimixResult").innerText =
-`목표 수심: ${depth}m / 목표 END: ${end}m
-→ 트라이믹스: O₂ ${(o2frac * 100).toFixed(1)}% / He ${(he_frac * 100).toFixed(0)}% (TX ${Math.round(o2frac * 100)} / ${Math.round(he_frac * 100)})
+  const o2Bar = +(fill * o2Frac).toFixed(1);
+  const heBar = +(fill * heFrac).toFixed(1);
+  const n2Bar = +(fill * n2Frac).toFixed(1);
+  const cum1 = o2Bar;
+  const cum2 = cum1 + heBar;
+  const cum3 = cum2 + n2Bar;
 
-EAN_x = ${eanx.toFixed(3)}  
+  const eanx = +(o2Frac / (1 - heFrac)).toFixed(2);
+
+  document.getElementById("trimixResult").innerText =
+`🧪 추천 혼합가스: TX ${Math.round(o2Frac * 100)} / ${Math.round(heFrac * 100)}
+
+산소(O₂): ${Math.round(o2Frac * 100)}%
+헬륨(He): ${Math.round(heFrac * 100)}%
+질소(N₂): ${Math.round(n2Frac * 100)}%
+
+EAN_x = ${eanx}  
 (EAN_x = He 제외 후 O₂의 비율 = O₂% ÷ (1 - He%))
 
-총 충전 압력: ${fill} bar
-- O₂ 주입압력: ${o2_bar.toFixed(1)} bar → 누적 ${cum1.toFixed(1)} bar
-- He 주입압력: ${he_bar.toFixed(1)} bar → 누적 ${cum2.toFixed(1)} bar
-- Air 주입압력: ${air_bar.toFixed(1)} bar → 누적 ${fill.toFixed(1)} bar`;
-  }
-  // 🔧 여기까지 트라이믹스 계산기 함수
+총 압력: ${fill} bar
+- O₂ 주입압력: ${o2Bar} bar → 누적 ${cum1} bar
+- He 주입압력: ${heBar} bar → 누적 ${cum2} bar
+- Air 주입압력: ${n2Bar} bar → 누적 ${cum3} bar`;
+}
 </script>
 
 </body>

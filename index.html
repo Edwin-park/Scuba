@@ -2,184 +2,172 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>스쿠버 다이빙 계산기</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>다이빙 계산기</title>
   <style>
-    body {
-      font-family: sans-serif;
-      background-color: white;
-      margin: 0;
-      padding: 0;
-    }
-    .tab-container {
-      display: flex;
-      justify-content: center;
-      margin-top: 20px;
-      flex-wrap: wrap;
-    }
-    .tab-button {
-      padding: 10px 20px;
-      border: none;
-      background-color: #eee;
-      cursor: pointer;
-      margin: 5px;
-    }
-    .tab-button.active {
-      background-color: #ff4d4d;
-      color: white;
-    }
-    .tab-content {
-      display: none;
-      padding: 20px;
-    }
-    .tab-content.active {
-      display: block;
-    }
-    input {
-      width: 90%;
-      padding: 10px;
-      margin-bottom: 10px;
-      font-size: 1em;
-    }
-    button {
-      padding: 10px 20px;
-      font-size: 1em;
-      background-color: #ff4d4d;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-    .output {
-      margin-top: 15px;
-      font-weight: bold;
-      font-size: 1.1em;
-    }
+    body { font-family: sans-serif; background: white; padding: 0; margin: 0; }
+    .tab-container { display: flex; flex-wrap: wrap; justify-content: center; margin-top: 1rem; }
+    .tab-button { padding: 10px 15px; margin: 2px; border: none; background: #ccc; cursor: pointer; }
+    .tab-button.active { background: #666; color: white; }
+    .tab-content { display: none; padding: 20px; max-width: 500px; margin: auto; }
+    .tab-content.active { display: block; }
+    input, select { width: 100%; padding: 10px; margin: 5px 0; font-size: 1em; }
+    button { width: 100%; padding: 10px; background: #ff5050; color: white; border: none; font-size: 1em; cursor: pointer; }
+    .output { margin-top: 10px; font-weight: bold; white-space: pre-wrap; }
   </style>
 </head>
 <body>
-
   <div class="tab-container">
     <button class="tab-button active" onclick="switchTab('rmv-single')">RMV (싱글)</button>
     <button class="tab-button" onclick="switchTab('rmv-double')">RMV (더블)</button>
-    <button class="tab-button" onclick="switchTab('nitrox')">나이트록스</button>
-    <button class="tab-button" onclick="switchTab('trimix')">트라이믹스</button>
+    <button class="tab-button" onclick="switchTab('nitrox')">나이트록스 블렌딩</button>
+    <button class="tab-button" onclick="switchTab('mod')">MOD 계산</button>
+    <button class="tab-button" onclick="switchTab('trimix')">트라이믹스 블렌딩</button>
   </div>
 
-  <!-- RMV (싱글) -->
   <div id="rmv-single" class="tab-content active">
     <h3>RMV 계산기 (싱글 탱크 11L)</h3>
-    <input id="s1" placeholder="입수 탱크압력 (bar)" type="number" />
-    <input id="s2" placeholder="출수 탱크압력 (bar)" type="number" />
-    <input id="s3" placeholder="평균수심 (m)" type="number" />
-    <input id="s4" placeholder="다이빙시간 (분)" type="number" />
-    <button onclick="calcRMVSingle()">계산하기</button>
-    <div class="output" id="s-result"></div>
+    <input id="rs_in" placeholder="입수 잔압 (bar)" type="number" />
+    <input id="rs_out" placeholder="출수 잔압 (bar)" type="number" />
+    <input id="rs_depth" placeholder="평균 수심 (m)" type="number" />
+    <input id="rs_time" placeholder="다이빙 시간 (분)" type="number" />
+    <button onclick="calcRMVSingle()">계산</button>
+    <div id="rs_output" class="output"></div>
   </div>
 
-  <!-- RMV (더블) -->
   <div id="rmv-double" class="tab-content">
-    <h3>RMV 계산기 (더블탱크 22L + 데코탱크 최대 3개)</h3>
-    <input id="d1" placeholder="입수 탱크압력 (bar)" type="number" />
-    <input id="d2" placeholder="출수 탱크압력 (bar)" type="number" />
-    <input id="d3" placeholder="평균수심 (m)" type="number" />
-    <input id="d4" placeholder="다이빙시간 (분)" type="number" />
-    <hr />
-    <p>데코탱크 1 (11L)</p>
-    <input id="d5" placeholder="입수압력 (bar)" type="number" />
-    <input id="d6" placeholder="출수압력 (bar)" type="number" />
-    <p>데코탱크 2 (11L)</p>
-    <input id="d7" placeholder="입수압력 (bar)" type="number" />
-    <input id="d8" placeholder="출수압력 (bar)" type="number" />
-    <p>데코탱크 3 (11L)</p>
-    <input id="d9" placeholder="입수압력 (bar)" type="number" />
-    <input id="d10" placeholder="출수압력 (bar)" type="number" />
-    <button onclick="calcRMVDouble()">계산하기</button>
-    <div class="output" id="d-result"></div>
+    <h3>RMV 계산기 (더블탱크 22L + 데코탱크 11L)</h3>
+    <input id="rd_in" placeholder="입수 잔압 (bar)" type="number" />
+    <input id="rd_out" placeholder="출수 잔압 (bar)" type="number" />
+    <input id="rd_depth" placeholder="평균 수심 (m)" type="number" />
+    <input id="rd_time" placeholder="다이빙 시간 (분)" type="number" />
+    <h4>데코탱크 1</h4>
+    <input id="deco1_in" placeholder="입수 압력 (bar)" type="number" />
+    <input id="deco1_out" placeholder="출수 압력 (bar)" type="number" />
+    <h4>데코탱크 2</h4>
+    <input id="deco2_in" placeholder="입수 압력 (bar)" type="number" />
+    <input id="deco2_out" placeholder="출수 압력 (bar)" type="number" />
+    <h4>데코탱크 3</h4>
+    <input id="deco3_in" placeholder="입수 압력 (bar)" type="number" />
+    <input id="deco3_out" placeholder="출수 압력 (bar)" type="number" />
+    <button onclick="calcRMVDouble()">계산</button>
+    <div id="rd_output" class="output"></div>
+  </div>
+    <div id="nitrox" class="tab-content">
+    <h3>나이트록스 블렌딩</h3>
+    <input id="target_oxy" placeholder="목표 산소 농도 (%)" type="number" />
+    <input id="fill_pressure" placeholder="총 충전압력 (bar)" type="number" />
+    <button onclick="calcNitrox()">계산</button>
+    <div id="nitrox_output" class="output"></div>
   </div>
 
-  <!-- 나이트록스 -->
-  <div id="nitrox" class="tab-content">
-    <h3>나이트록스 MOD 계산기</h3>
-    <input id="n1" placeholder="산소 비율 (%)" type="number" />
-    <input id="n2" placeholder="최대 PO₂ (기본: 1.4)" type="number" value="1.4" />
-    <button onclick="calcMOD()">계산하기</button>
-    <div class="output" id="n-result"></div>
+  <div id="mod" class="tab-content">
+    <h3>MOD 계산기</h3>
+    <select id="mod_po2">
+      <option value="1.4">PO₂ 1.4</option>
+      <option value="1.6">PO₂ 1.6</option>
+    </select>
+    <input id="mod_oxy" placeholder="산소 농도 (%)" type="number" />
+    <button onclick="calcMOD()">계산</button>
+    <div id="mod_output" class="output"></div>
   </div>
 
-  <!-- 트라이믹스 -->
   <div id="trimix" class="tab-content">
-    <h3>트라이믹스 계산기</h3>
-    <input id="t1" placeholder="목표 수심 (m)" type="number" />
-    <input id="t2" placeholder="목표 END (m)" type="number" />
-    <input id="t3" placeholder="총 충전압력 (bar)" type="number" />
-    <button onclick="calcTrimix()">계산하기</button>
-    <div class="output" id="t-result"></div>
+    <h3>트라이믹스 블렌딩</h3>
+    <input id="trimix_depth" placeholder="목표 수심 (m)" type="number" />
+    <input id="trimix_end" placeholder="목표 END (m)" type="number" />
+    <input id="trimix_pressure" placeholder="충전 압력 (bar)" type="number" />
+    <button onclick="calcTrimix()">계산</button>
+    <div id="trimix_output" class="output"></div>
   </div>
 
   <script>
-    function switchTab(id) {
-      document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-      document.getElementById(id).classList.add('active');
-      event.target.classList.add('active');
+    function switchTab(tabId) {
+      document.querySelectorAll(".tab-content").forEach(el => el.classList.remove("active"));
+      document.querySelectorAll(".tab-button").forEach(btn => btn.classList.remove("active"));
+      document.getElementById(tabId).classList.add("active");
+      event.target.classList.add("active");
     }
 
     function calcRMVSingle() {
-      const start = parseFloat(document.getElementById('s1').value);
-      const end = parseFloat(document.getElementById('s2').value);
-      const depth = parseFloat(document.getElementById('s3').value);
-      const time = parseFloat(document.getElementById('s4').value);
-      if (isNaN(start) || isNaN(end) || isNaN(depth) || isNaN(time)) return;
-      const used = (start - end) * 11;
+      const P1 = parseFloat(rs_in.value);
+      const P2 = parseFloat(rs_out.value);
+      const depth = parseFloat(rs_depth.value);
+      const time = parseFloat(rs_time.value);
+      const vol = 11;
+      if (isNaN(P1) || isNaN(P2) || isNaN(depth) || isNaN(time)) {
+        rs_output.textContent = "모든 값을 입력하세요.";
+        return;
+      }
+      const used = (P1 - P2) * vol;
       const atm = depth / 10 + 1;
-      const rmv = Math.round((used / time / atm) * 10) / 10;
-      document.getElementById('s-result').textContent = `RMV = ${rmv} L`;
+      const rmv = used / time / atm;
+      rs_output.textContent = `총 사용량: ${used.toFixed(1)} L\nRMV: ${rmv.toFixed(1)} L/min`;
     }
 
     function calcRMVDouble() {
-      const start = parseFloat(document.getElementById('d1').value);
-      const end = parseFloat(document.getElementById('d2').value);
-      const depth = parseFloat(document.getElementById('d3').value);
-      const time = parseFloat(document.getElementById('d4').value);
-      const deco = [[d5,d6],[d7,d8],[d9,d10]].map(([i1, i2]) =>
-        Math.max(0, (parseFloat(document.getElementById(i1.id).value || 0) - parseFloat(document.getElementById(i2.id).value || 0)) * 11)
-      );
-      if (isNaN(start) || isNaN(end) || isNaN(depth) || isNaN(time)) return;
-      const mainUsed = (start - end) * 22;
-      const totalUsed = mainUsed + deco.reduce((a,b)=>a+b,0);
+      const P1 = parseFloat(rd_in.value);
+      const P2 = parseFloat(rd_out.value);
+      const depth = parseFloat(rd_depth.value);
+      const time = parseFloat(rd_time.value);
+      const deco1 = (parseFloat(deco1_in.value) - parseFloat(deco1_out.value)) || 0;
+      const deco2 = (parseFloat(deco2_in.value) - parseFloat(deco2_out.value)) || 0;
+      const deco3 = (parseFloat(deco3_in.value) - parseFloat(deco3_out.value)) || 0;
+      const used_main = (P1 - P2) * 22;
+      const used_deco = (deco1 + deco2 + deco3) * 11;
       const atm = depth / 10 + 1;
-      const rmv = Math.round((mainUsed / time / atm) * 10) / 10;
-      document.getElementById('d-result').textContent = `RMV = ${rmv} L (총 사용량: ${totalUsed} L)`;
+      const rmv = used_main / time / atm;
+      const total = used_main + used_deco;
+      rd_output.textContent = `총 사용량: ${total.toFixed(1)} L\n(메인 ${used_main.toFixed(1)}L + 데코 ${used_deco.toFixed(1)}L)\nRMV: ${rmv.toFixed(1)} L/min`;
+    }
+    function calcNitrox() {
+      const oxy = parseFloat(document.getElementById("target_oxy").value);
+      const pressure = parseFloat(document.getElementById("fill_pressure").value);
+      if (isNaN(oxy) || isNaN(pressure)) {
+        nitrox_output.textContent = "모든 값을 입력하세요.";
+        return;
+      }
+      const o2bar = pressure * (oxy - 21) / (100 - 21);
+      const adjusted = o2bar - 1;
+      nitrox_output.textContent = `산소 100% 주입량: ${adjusted.toFixed(1)} bar (1 bar 안전감소 반영됨)`;
     }
 
     function calcMOD() {
-      const o2 = parseFloat(document.getElementById('n1').value) / 100;
-      const ppo2 = parseFloat(document.getElementById('n2').value);
-      if (isNaN(o2) || isNaN(ppo2) || o2 === 0) return;
-      const mod = Math.floor(((ppo2 / o2) - 1) * 10);
-      document.getElementById('n-result').textContent = `MOD = ${mod} m`;
+      const po2 = parseFloat(document.getElementById("mod_po2").value);
+      const oxy = parseFloat(document.getElementById("mod_oxy").value) / 100;
+      if (isNaN(po2) || isNaN(oxy) || oxy === 0) {
+        mod_output.textContent = "값을 입력하세요.";
+        return;
+      }
+      const mod = ((po2 / oxy) - 1) * 10;
+      mod_output.textContent = `MOD: ${mod.toFixed(1)} m`;
     }
 
     function calcTrimix() {
-      const depth = parseFloat(document.getElementById('t1').value);
-      const end = parseFloat(document.getElementById('t2').value);
-      const total = parseFloat(document.getElementById('t3').value);
-      const pp_end = (end * 0.1 + 1) * 0.79;
-      const pp_depth = depth * 0.1 + 1;
-      const n2 = Math.round((pp_end / pp_depth) * 100);
-      const o2 = 20;
-      const he = 100 - o2 - n2;
-      const mixHe = Math.ceil(he / 5) * 5;
-      const mix = `TX ${o2} / ${mixHe}`;
-      const eanx = o2 / (1 - mixHe / 100);
-      const o2Bar = Math.round((eanx - 0.21) / 0.79 * (total - mixHe));
-      const heBar = Math.round((total * mixHe) / 100);
-      const airBar = total - o2Bar - heBar;
-      document.getElementById('t-result').innerHTML =
-        `추천 혼합가스: ${mix}<br>산소: ${o2}%<br>헬륨: ${mixHe}%<br>질소: ${100 - o2 - mixHe}%<br><br>` +
-        `EAN_x = ${eanx.toFixed(2)}<br><br>총 압력: ${total} bar<br>` +
-        `- O₂ 주입압력: ${o2Bar} bar<br>- He 주입압력: ${heBar} bar<br>- Air 주입압력: ${airBar} bar`;
+      const depth = parseFloat(document.getElementById("trimix_depth").value);
+      const end = parseFloat(document.getElementById("trimix_end").value);
+      const fill = parseFloat(document.getElementById("trimix_pressure").value);
+      if (isNaN(depth) || isNaN(end) || isNaN(fill)) {
+        trimix_output.textContent = "모든 값을 입력하세요.";
+        return;
+      }
+      const ata = depth * 0.1 + 1;
+      const end_bar = (end * 0.1 + 1) * 0.79;
+      const he = Math.ceil((1 - (end_bar / ata)) * 100 / 5) * 5;
+      const o2 = Math.round((1.4 / ata) * 100);
+      const n2 = 100 - he - o2;
+      const o2bar = (fill * o2) / 100;
+      const hebar = (fill * he) / 100;
+      const n2bar = fill - o2bar - hebar;
+      const eanx = (o2 / (1 - he / 100)).toFixed(1);
+      trimix_output.textContent =
+        `트라이믹스 추천: TX ${o2}% / ${he}%\n` +
+        `O₂: ${o2bar.toFixed(1)} bar\n` +
+        `He: ${hebar.toFixed(1)} bar\n` +
+        `N₂: ${n2bar.toFixed(1)} bar\n` +
+        `누적 압력: ${(o2bar + hebar + n2bar).toFixed(1)} bar\n` +
+        `EAN_x: ${eanx} (산소 ÷ (1 - He%))`;
     }
-  </script>
+    </script>
 </body>
 </html>

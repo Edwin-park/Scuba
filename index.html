@@ -1,160 +1,197 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>스쿠버 다이빙 계산기</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
-    body { background-color: #f5f7fa; padding-top: 40px; }
-    .tab-content { margin-top: 20px; }
-    input.form-control:focus { box-shadow: 0 0 5px #3498db; }
-    .yellow { background-color: #ffffcc !important; }
-    pre { background: #eef6fb; padding: 15px; border-radius: 6px; white-space: pre-wrap; }
+    body {
+      background-color: white;
+      font-family: sans-serif;
+      margin: 0;
+      padding: 0;
+      color: #222;
+    }
+
+    header {
+      background-color: #005f73;
+      color: white;
+      padding: 1rem;
+      text-align: center;
+      font-size: 1.3rem;
+    }
+
+    .tabs {
+      display: flex;
+      background-color: #e0f7fa;
+    }
+
+    .tab {
+      flex: 1;
+      text-align: center;
+      padding: 1rem;
+      cursor: pointer;
+      font-weight: bold;
+      border-bottom: 3px solid transparent;
+    }
+
+    .tab.active {
+      border-bottom: 3px solid #0077b6;
+      background-color: #caf0f8;
+    }
+
+    .content {
+      padding: 1rem;
+      display: none;
+    }
+
+    .content.active {
+      display: block;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+    }
+
+    input {
+      width: 100%;
+      padding: 0.6rem;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    button {
+      background-color: #0077b6;
+      color: white;
+      border: none;
+      padding: 0.7rem 1.2rem;
+      font-size: 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 1rem;
+    }
+
+    .result {
+      margin-top: 1rem;
+      font-size: 1.1rem;
+      background: #f1f1f1;
+      padding: 1rem;
+      border-radius: 6px;
+    }
   </style>
 </head>
 <body>
+  <header>스쿠버 다이빙 계산기</header>
 
-<div class="container">
-  <h2 class="text-center mb-4">🌊 스쿠버 다이빙 계산기</h2>
-
-  <!-- 🔹 탭 메뉴 -->
-  <ul class="nav nav-tabs" id="calcTabs">
-    <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#rmv">RMV</a></li>
-    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#nitrox">나이트록스</a></li>
-    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#trimix">트라이믹스</a></li>
-  </ul>
-
-  <div class="tab-content">
-
-    <!-- ✅ RMV 계산기 -->
-    <!-- 🔧 여기부터 RMV 계산기 HTML 시작 -->
-    <div class="tab-pane fade show active" id="rmv">
-      <div class="mt-4">
-        <label>사용한 공기량 (L):</label>
-        <input type="number" class="form-control yellow" id="usedAir">
-        <label>평균 수심 (m):</label>
-        <input type="number" class="form-control yellow" id="avgDepth">
-        <label>다이빙 시간 (분):</label>
-        <input type="number" class="form-control yellow" id="diveTime">
-        <button class="btn btn-primary mt-3 w-100" onclick="calculateRMV()">계산하기</button>
-        <pre id="rmvResult"></pre>
-      </div>
-    </div>
-    <!-- 🔧 여기까지 RMV 계산기 HTML 끝 -->
-
-    <!-- ✅ 나이트록스 블렌딩 계산기 -->
-    <!-- 🔧 여기부터 나이트록스 계산기 HTML 시작 -->
-    <div class="tab-pane fade" id="nitrox">
-      <div class="mt-4">
-        <label>목표 O₂ (%):</label>
-        <input type="number" class="form-control yellow" id="targetO2">
-        <label>총 압력 (bar):</label>
-        <input type="number" class="form-control yellow" id="totalPressure">
-        <button class="btn btn-success mt-3 w-100" onclick="calculateNitrox()">계산하기</button>
-        <pre id="nitroxResult"></pre>
-      </div>
-    </div>
-    <!-- 🔧 여기까지 나이트록스 계산기 HTML 끝 -->
-
-<!-- 🔧 트라이믹스 계산기 HTML -->
-<div class="tab-pane fade" id="trimix">
-  <div class="mt-4">
-    <label>목표 수심 (m):</label>
-    <input type="number" class="form-control yellow" id="depth">
-    <label>목표 END (m):</label>
-    <input type="number" class="form-control yellow" id="end">
-    <label>총 충전 압력 (bar):</label>
-    <input type="number" class="form-control yellow" id="fill">
-    <button class="btn btn-danger mt-3 w-100" onclick="calculateTrimix()">계산하기</button>
-    <pre id="trimixResult"></pre>
+  <div class="tabs">
+    <div class="tab active" onclick="showTab('rmv-single')">RMV (싱글)</div>
+    <div class="tab" onclick="showTab('rmv-double')">RMV (더블)</div>
+    <div class="tab" onclick="showTab('nitrox')">나이트록스</div>
+    <div class="tab" onclick="showTab('trimix')">트라이믹스</div>
   </div>
-</div>
-    <!-- 🔧 여기까지 트라이믹스 계산기 HTML 끝 -->
 
+  <!-- RMV 싱글 탭 -->
+  <div id="rmv-single" class="content active">
+    <div class="form-group">
+      <label>입수 탱크압력 (bar)</label>
+      <input type="number" id="rmv1_start" />
+    </div>
+    <div class="form-group">
+      <label>출수 탱크압력 (bar)</label>
+      <input type="number" id="rmv1_end" />
+    </div>
+    <div class="form-group">
+      <label>평균수심 (m)</label>
+      <input type="number" id="rmv1_depth" />
+    </div>
+    <div class="form-group">
+      <label>다이빙 시간 (분)</label>
+      <input type="number" id="rmv1_time" />
+    </div>
+    <button onclick="calcRMV('single')">계산하기</button>
+    <div class="result" id="rmv1_result"></div>
   </div>
-</div>
 
-<!-- ✅ 스크립트 로직 -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-  // 🔧 여기부터 RMV 계산기 함수
-  function calculateRMV() {
-    const usedAir = parseFloat(document.getElementById("usedAir").value);
-    const avgDepth = parseFloat(document.getElementById("avgDepth").value);
-    const diveTime = parseFloat(document.getElementById("diveTime").value);
-    if (isNaN(usedAir) || isNaN(avgDepth) || isNaN(diveTime) || diveTime <= 0) {
-      document.getElementById("rmvResult").innerText = "모든 값을 올바르게 입력해주세요.";
-      return;
+  <!-- RMV 더블 탭 -->
+  <div id="rmv-double" class="content">
+    <div class="form-group">
+      <label>입수 탱크압력 (bar)</label>
+      <input type="number" id="rmv2_start" />
+    </div>
+    <div class="form-group">
+      <label>출수 탱크압력 (bar)</label>
+      <input type="number" id="rmv2_end" />
+    </div>
+    <div class="form-group">
+      <label>평균수심 (m)</label>
+      <input type="number" id="rmv2_depth" />
+    </div>
+    <div class="form-group">
+      <label>다이빙 시간 (분)</label>
+      <input type="number" id="rmv2_time" />
+    </div>
+    <div class="form-group">
+      <label>데코탱크 개수 (1~3)</label>
+      <input type="number" id="rmv2_deco" min="0" max="3" />
+    </div>
+    <button onclick="calcRMV('double')">계산하기</button>
+    <div class="result" id="rmv2_result"></div>
+  </div>
+
+  <!-- 나이트록스 -->
+  <div id="nitrox" class="content">
+    <p>🛠 준비 중입니다...</p>
+  </div>
+
+  <!-- 트라이믹스 -->
+  <div id="trimix" class="content">
+    <p>🛠 준비 중입니다...</p>
+  </div>
+
+  <script>
+    // 탭 전환 처리
+    function showTab(id) {
+      document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+      document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+      event.target.classList.add('active');
     }
-    const ata = avgDepth / 10 + 1;
-    const rmv = usedAir / (ata * diveTime);
-    document.getElementById("rmvResult").innerText = `RMV = ${rmv.toFixed(1)} L/min`;
-  }
-  // 🔧 여기까지 RMV 계산기 함수
 
-  // 🔧 여기부터 나이트록스 계산기 함수
-  function calculateNitrox() {
-    const o2 = parseFloat(document.getElementById("targetO2").value);
-    const total = parseFloat(document.getElementById("totalPressure").value);
-    if (isNaN(o2) || isNaN(total)) {
-      document.getElementById("nitroxResult").innerText = "값을 정확히 입력해주세요.";
-      return;
+    // RMV 계산 함수
+    function calcRMV(type) {
+      let start, end, depth, time, deco, tankVolume;
+      if (type === 'single') {
+        start = Number(document.getElementById('rmv1_start').value);
+        end = Number(document.getElementById('rmv1_end').value);
+        depth = Number(document.getElementById('rmv1_depth').value);
+        time = Number(document.getElementById('rmv1_time').value);
+        tankVolume = 11; // 싱글탱크
+      } else {
+        start = Number(document.getElementById('rmv2_start').value);
+        end = Number(document.getElementById('rmv2_end').value);
+        depth = Number(document.getElementById('rmv2_depth').value);
+        time = Number(document.getElementById('rmv2_time').value);
+        deco = Number(document.getElementById('rmv2_deco').value);
+        if (deco < 0) deco = 0;
+        if (deco > 3) deco = 3;
+        tankVolume = 22 + (11 * deco); // 더블탱크 + 데코탱크
+      }
+
+      const usedBar = start - end;
+      const ambientPressure = (depth / 10) + 1;
+      const gasUsed = usedBar * tankVolume;
+      const rmv = gasUsed / (ambientPressure * time);
+
+      const result = `RMV = ${rmv.toFixed(1)} L/min`;
+      const output = type === 'single' ? 'rmv1_result' : 'rmv2_result';
+      document.getElementById(output).innerText = result;
     }
-    const rawO2 = (o2 - 21) / 79 * total;
-    const rounded = Math.round(rawO2);
-    const adjusted = rounded - 1;
-    const air = total - adjusted;
-    document.getElementById("nitroxResult").innerText =
-      `100% 산소: ${adjusted} bar (계산값 ${rounded} bar 에서 -1 bar 적용)\n공기: ${air} bar (총 ${total} bar 기준)`;
-  }
-  // 🔧 여기까지 나이트록스 계산기 함수
-
-  // 🔧 여기부터 트라이믹스 계산기 함수
-function calculateTrimix() {
-  const depth = parseFloat(document.getElementById("depth").value);
-  const end = parseFloat(document.getElementById("end").value);
-  const fill = parseFloat(document.getElementById("fill").value);
-
-  if (isNaN(depth) || isNaN(end) || isNaN(fill) || depth <= 0 || end < 0 || fill <= 0) {
-    document.getElementById("trimixResult").innerText = "값을 정확히 입력해주세요.";
-    return;
-  }
-
-  const ppo2 = 1.4;
-  const pressure = depth * 0.1 + 1;
-  const endBar = pressure * 0.79;
-
-  const o2Frac = +(ppo2 / pressure).toFixed(2);
-  const heFracRaw = (pressure - endBar) / pressure;
-  const heFrac = Math.ceil(heFracRaw * 100 / 5) * 5 / 100;
-  const n2Frac = +(1 - o2Frac - heFrac).toFixed(2);
-
-  const o2Bar = +(fill * o2Frac).toFixed(1);
-  const heBar = +(fill * heFrac).toFixed(1);
-  const n2Bar = +(fill * n2Frac).toFixed(1);
-  const cum1 = o2Bar;
-  const cum2 = cum1 + heBar;
-  const cum3 = cum2 + n2Bar;
-
-  const eanx = +(o2Frac / (1 - heFrac)).toFixed(2);
-
-  document.getElementById("trimixResult").innerText =
-`🧪 추천 혼합가스: TX ${Math.round(o2Frac * 100)} / ${Math.round(heFrac * 100)}
-
-산소(O₂): ${Math.round(o2Frac * 100)}%
-헬륨(He): ${Math.round(heFrac * 100)}%
-질소(N₂): ${Math.round(n2Frac * 100)}%
-
-EAN_x = ${eanx}  
-(EAN_x = He 제외 후 O₂의 비율 = O₂% ÷ (1 - He%))
-
-총 압력: ${fill} bar
-- O₂ 주입압력: ${o2Bar} bar → 누적 ${cum1} bar
-- He 주입압력: ${heBar} bar → 누적 ${cum2} bar
-- Air 주입압력: ${n2Bar} bar → 누적 ${cum3} bar`;
-}
-</script>
-
+  </script>
 </body>
 </html>

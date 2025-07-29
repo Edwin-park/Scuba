@@ -5,21 +5,50 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>다이빙 계산기</title>
   <style>
-    body { font-family: sans-serif; background: white; padding: 0; margin: 0; }
-    .tab-container { display: flex; flex-wrap: wrap; justify-content: center; margin-top: 1rem; }
-    .tab-button { padding: 10px 15px; margin: 2px; border: none; background: #ccc; cursor: pointer; }
-    .tab-button.active { background: #666; color: white; }
+    body { font-family: sans-serif; background: white; margin: 0; padding: 0; }
+    .tab-container { display: flex; flex-wrap: wrap; justify-content: center; background: #eee; }
+    .tab-button {
+      flex: 1;
+      min-width: 100px;
+      padding: 12px;
+      border: none;
+      background: #ddd;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .tab-button.active { background: #ff5050; color: white; }
     .tab-content { display: none; padding: 20px; max-width: 500px; margin: auto; }
     .tab-content.active { display: block; }
-    input, select { width: 100%; padding: 10px; margin: 5px 0; font-size: 1em; }
-    button { width: 100%; padding: 10px; background: #ff5050; color: white; border: none; font-size: 1em; cursor: pointer; }
-    .output { margin-top: 10px; font-weight: bold; white-space: pre-wrap; }
+    input, select {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      font-size: 1em;
+      box-sizing: border-box;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      background: #ff5050;
+      color: white;
+      font-size: 1em;
+      border: none;
+      cursor: pointer;
+    }
+    .output {
+      margin-top: 10px;
+      font-weight: bold;
+      white-space: pre-wrap;
+      background: #f9f9f9;
+      padding: 10px;
+      border-radius: 4px;
+    }
   </style>
 </head>
 <body>
   <div class="tab-container">
     <button class="tab-button active" onclick="switchTab('rmv-single')">RMV (싱글)</button>
-    <button class="tab-button" onclick="switchTab('rmv-double')">RMV (더블)</button>
+    <button class="tab-button" onclick="switchTab('rmv-double')">RMV 계산기 (더블탱크 22L + 데코탱크 11L)</button>
     <button class="tab-button" onclick="switchTab('nitrox')">나이트록스 블렌딩</button>
     <button class="tab-button" onclick="switchTab('mod')">MOD 계산</button>
     <button class="tab-button" onclick="switchTab('trimix')">트라이믹스 블렌딩</button>
@@ -53,7 +82,7 @@
     <button onclick="calcRMVDouble()">계산</button>
     <div id="rd_output" class="output"></div>
   </div>
-    <div id="nitrox" class="tab-content">
+  <div id="nitrox" class="tab-content">
     <h3>나이트록스 블렌딩</h3>
     <input id="target_oxy" placeholder="목표 산소 농도 (%)" type="number" />
     <input id="fill_pressure" placeholder="총 충전압력 (bar)" type="number" />
@@ -80,94 +109,97 @@
     <button onclick="calcTrimix()">계산</button>
     <div id="trimix_output" class="output"></div>
   </div>
+<script>
+  function switchTab(tabId) {
+    document.querySelectorAll(".tab-content").forEach(el => el.classList.remove("active"));
+    document.querySelectorAll(".tab-button").forEach(btn => btn.classList.remove("active"));
+    document.getElementById(tabId).classList.add("active");
+    event.target.classList.add("active");
+  }
 
-  <script>
-    function switchTab(tabId) {
-      document.querySelectorAll(".tab-content").forEach(el => el.classList.remove("active"));
-      document.querySelectorAll(".tab-button").forEach(btn => btn.classList.remove("active"));
-      document.getElementById(tabId).classList.add("active");
-      event.target.classList.add("active");
+  function calcRMVSingle() {
+    const P1 = parseFloat(rs_in.value);
+    const P2 = parseFloat(rs_out.value);
+    const depth = parseFloat(rs_depth.value);
+    const time = parseFloat(rs_time.value);
+    const vol = 11;
+    if (isNaN(P1) || isNaN(P2) || isNaN(depth) || isNaN(time)) {
+      rs_output.textContent = "모든 값을 입력하세요.";
+      return;
+    }
+    const used = (P1 - P2) * vol;
+    const atm = depth / 10 + 1;
+    const rmv = used / time / atm;
+    rs_output.textContent = `총 사용량: ${used.toFixed(1)} L\nRMV: ${rmv.toFixed(1)} L/min`;
+  }
+
+  function calcRMVDouble() {
+    const P1 = parseFloat(rd_in.value);
+    const P2 = parseFloat(rd_out.value);
+    const depth = parseFloat(rd_depth.value);
+    const time = parseFloat(rd_time.value);
+    const deco1 = (parseFloat(deco1_in.value) - parseFloat(deco1_out.value)) || 0;
+    const deco2 = (parseFloat(deco2_in.value) - parseFloat(deco2_out.value)) || 0;
+    const deco3 = (parseFloat(deco3_in.value) - parseFloat(deco3_out.value)) || 0;
+    const used_main = (P1 - P2) * 22;
+    const used_deco = (deco1 + deco2 + deco3) * 11;
+    const atm = depth / 10 + 1;
+    const rmv = used_main / time / atm;
+    const total = used_main + used_deco;
+    rd_output.textContent = `총 사용량: ${total.toFixed(1)} L\n(메인 ${used_main.toFixed(1)}L + 데코 ${used_deco.toFixed(1)}L)\nRMV: ${rmv.toFixed(1)} L/min`;
+  }
+
+  function calcNitrox() {
+    const oxy = parseFloat(document.getElementById("target_oxy").value);
+    const pressure = parseFloat(document.getElementById("fill_pressure").value);
+    if (isNaN(oxy) || isNaN(pressure)) {
+      nitrox_output.textContent = "모든 값을 입력하세요.";
+      return;
+    }
+    const o2bar = pressure * (oxy - 21) / (100 - 21);
+    const adjusted = o2bar - 1;
+    nitrox_output.textContent = `산소 100% 주입량: ${adjusted.toFixed(1)} bar (- 1 bar 했음)`;
+  }
+
+  function calcMOD() {
+    const po2 = parseFloat(document.getElementById("mod_po2").value);
+    const oxy = parseFloat(document.getElementById("mod_oxy").value) / 100;
+    if (isNaN(po2) || isNaN(oxy) || oxy === 0) {
+      mod_output.textContent = "값을 입력하세요.";
+      return;
+    }
+    const mod = ((po2 / oxy) - 1) * 10;
+    mod_output.textContent = `MOD: ${mod.toFixed(1)} m`;
+  }
+
+  function calcTrimix() {
+    const depth = parseFloat(document.getElementById("trimix_depth").value);
+    const end = parseFloat(document.getElementById("trimix_end").value);
+    const fill = parseFloat(document.getElementById("trimix_pressure").value);
+    if (isNaN(depth) || isNaN(end) || isNaN(fill)) {
+      trimix_output.textContent = "모든 값을 입력하세요.";
+      return;
     }
 
-    function calcRMVSingle() {
-      const P1 = parseFloat(rs_in.value);
-      const P2 = parseFloat(rs_out.value);
-      const depth = parseFloat(rs_depth.value);
-      const time = parseFloat(rs_time.value);
-      const vol = 11;
-      if (isNaN(P1) || isNaN(P2) || isNaN(depth) || isNaN(time)) {
-        rs_output.textContent = "모든 값을 입력하세요.";
-        return;
-      }
-      const used = (P1 - P2) * vol;
-      const atm = depth / 10 + 1;
-      const rmv = used / time / atm;
-      rs_output.textContent = `총 사용량: ${used.toFixed(1)} L\nRMV: ${rmv.toFixed(1)} L/min`;
-    }
+    const ata = depth * 0.1 + 1;
+    const end_bar = (end * 0.1 + 1) * 0.79;
+    const he = Math.ceil((1 - (end_bar / ata)) * 100 / 5) * 5;
+    const o2 = Math.round((1.4 / ata) * 100);
+    const n2 = 100 - he - o2;
 
-    function calcRMVDouble() {
-      const P1 = parseFloat(rd_in.value);
-      const P2 = parseFloat(rd_out.value);
-      const depth = parseFloat(rd_depth.value);
-      const time = parseFloat(rd_time.value);
-      const deco1 = (parseFloat(deco1_in.value) - parseFloat(deco1_out.value)) || 0;
-      const deco2 = (parseFloat(deco2_in.value) - parseFloat(deco2_out.value)) || 0;
-      const deco3 = (parseFloat(deco3_in.value) - parseFloat(deco3_out.value)) || 0;
-      const used_main = (P1 - P2) * 22;
-      const used_deco = (deco1 + deco2 + deco3) * 11;
-      const atm = depth / 10 + 1;
-      const rmv = used_main / time / atm;
-      const total = used_main + used_deco;
-      rd_output.textContent = `총 사용량: ${total.toFixed(1)} L\n(메인 ${used_main.toFixed(1)}L + 데코 ${used_deco.toFixed(1)}L)\nRMV: ${rmv.toFixed(1)} L/min`;
-    }
-    function calcNitrox() {
-      const oxy = parseFloat(document.getElementById("target_oxy").value);
-      const pressure = parseFloat(document.getElementById("fill_pressure").value);
-      if (isNaN(oxy) || isNaN(pressure)) {
-        nitrox_output.textContent = "모든 값을 입력하세요.";
-        return;
-      }
-      const o2bar = pressure * (oxy - 21) / (100 - 21);
-      const adjusted = o2bar - 1;
-      nitrox_output.textContent = `산소 100% 주입량: ${adjusted.toFixed(1)} bar (1 bar 안전감소 반영됨)`;
-    }
+    const o2bar = (fill * o2) / 100;
+    const hebar = (fill * he) / 100;
+    const n2bar = fill - o2bar - hebar;
 
-    function calcMOD() {
-      const po2 = parseFloat(document.getElementById("mod_po2").value);
-      const oxy = parseFloat(document.getElementById("mod_oxy").value) / 100;
-      if (isNaN(po2) || isNaN(oxy) || oxy === 0) {
-        mod_output.textContent = "값을 입력하세요.";
-        return;
-      }
-      const mod = ((po2 / oxy) - 1) * 10;
-      mod_output.textContent = `MOD: ${mod.toFixed(1)} m`;
-    }
-
-    function calcTrimix() {
-      const depth = parseFloat(document.getElementById("trimix_depth").value);
-      const end = parseFloat(document.getElementById("trimix_end").value);
-      const fill = parseFloat(document.getElementById("trimix_pressure").value);
-      if (isNaN(depth) || isNaN(end) || isNaN(fill)) {
-        trimix_output.textContent = "모든 값을 입력하세요.";
-        return;
-      }
-      const ata = depth * 0.1 + 1;
-      const end_bar = (end * 0.1 + 1) * 0.79;
-      const he = Math.ceil((1 - (end_bar / ata)) * 100 / 5) * 5;
-      const o2 = Math.round((1.4 / ata) * 100);
-      const n2 = 100 - he - o2;
-      const o2bar = (fill * o2) / 100;
-      const hebar = (fill * he) / 100;
-      const n2bar = fill - o2bar - hebar;
-      const eanx = (o2 / (1 - he / 100)).toFixed(1);
-      trimix_output.textContent =
-        `트라이믹스 추천: TX ${o2}% / ${he}%\n` +
-        `O₂: ${o2bar.toFixed(1)} bar\n` +
-        `He: ${hebar.toFixed(1)} bar\n` +
-        `N₂: ${n2bar.toFixed(1)} bar\n` +
-        `누적 압력: ${(o2bar + hebar + n2bar).toFixed(1)} bar\n` +
-        `EAN_x: ${eanx} (산소 ÷ (1 - He%))`;
-    }
-    </script>
+    const eanx = (o2 / (1 - he / 100)).toFixed(1);
+    trimix_output.textContent =
+      `트라이믹스 : TX ${o2}% / ${he}%\n` +
+      `O₂: ${o2bar.toFixed(1)} bar\n` +
+      `He: ${hebar.toFixed(1)} bar\n` +
+      `N₂: ${n2bar.toFixed(1)} bar\n` +
+      `누적 압력: ${(o2bar + hebar + n2bar).toFixed(1)} bar\n` +
+      `EAN_x: ${eanx} (산소 ÷ (1 - He%))`;
+  }
+</script>
 </body>
 </html>

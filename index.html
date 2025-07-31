@@ -173,40 +173,43 @@
     mod_output.textContent = `MOD: ${mod.toFixed(1)} m`;
   }
 
-function calcTrimixFixed() {
+function calcTrimix() {
   const depth = parseFloat(document.getElementById("trimix_depth").value);
   const end = parseFloat(document.getElementById("trimix_end").value);
-  if (isNaN(depth) || isNaN(end)) {
+  const pressure = parseFloat(document.getElementById("trimix_pressure").value);
+
+  if (isNaN(depth) || isNaN(end) || isNaN(pressure)) {
     trimix_output.textContent = "모든 값을 입력하세요.";
     return;
   }
 
-  const ata = +(depth * 0.1 + 1).toFixed(2);
-  const endBar = +((end * 0.1 + 1) * 0.79).toFixed(2);
+  // 계산
+  const ata = +((depth * 0.1) + 1).toFixed(2);
+  const endBar = +(((end * 0.1) + 1) * 0.79).toFixed(2);
 
-  // 수면 기준
+  // 수면 기준 (1 bar)
   const o2_surf = +(1.4 / ata).toFixed(2);
   const n2_surf = +(endBar / ata).toFixed(2);
   const he_surf = +(1 - o2_surf - n2_surf).toFixed(2);
 
-  // 수심 기준
-  const o2 = +1.4.toFixed(2);
-  const n2 = +endBar.toFixed(2);
-  const he = +(ata - o2 - n2).toFixed(2);
+  // 다이빙 수심 기준
+  const o2_depth = +1.4.toFixed(2);
+  const n2_depth = +endBar.toFixed(2);
+  const he_depth = +(ata - o2_depth - n2_depth).toFixed(2);
 
-  // TX 표기
+  // 출력용 퍼센트
   const o2_percent = Math.round(o2_surf * 100);
   const he_percent = Math.ceil(he_surf * 100 / 5) * 5;
 
   trimix_output.textContent =
-    `압력 (bar): ${ata.toFixed(2)}\n` +
-    `END (bar): ${endBar.toFixed(2)}\n\n` +
-    `| 구분        | 산소  | 헬륨  | 질소  |\n` +
-    `|-------------|-------|-------|-------|\n` +
-    `| 수면 (1bar) | ${o2_surf.toFixed(2)}  | ${he_surf.toFixed(2)}  | ${n2_surf.toFixed(2)}  |\n` +
-    `| ${depth}m (${ata.toFixed(0)}bar)  | ${o2.toFixed(2)}  | ${he.toFixed(2)}  | ${n2.toFixed(2)}  |\n\n` +
-    `TX ${o2_percent} / ${he_percent}`;
+    `압력: ${depth}m → ${ata.toFixed(2)} bar\n` +
+    `END: ${end}m → ${endBar.toFixed(2)} bar\n\n` +
+    `구분          산소      헬륨      질소\n` +
+    `수면(1 bar)   ${o2_surf.toFixed(2)}     ${he_surf.toFixed(2)}     ${n2_surf.toFixed(2)}\n` +
+    `${depth}m(${ata.toFixed(0)} bar)   ${o2_depth.toFixed(2)}     ${he_depth.toFixed(2)}     ${n2_depth.toFixed(2)}\n\n` +
+    `➡️ 트라이믹스: TX ${o2_percent} / ${he_percent}`;
 }
 </script>
+
 </body>
 </html>

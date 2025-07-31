@@ -176,39 +176,105 @@
 function calcTrimix() {
   const depth = parseFloat(document.getElementById("trimix_depth").value);
   const end = parseFloat(document.getElementById("trimix_end").value);
-  const pressure = parseFloat(document.getElementById("trimix_pressure").value);
+  const fill = parseFloat(document.getElementById("trimix_pressure").value);
 
-  if (isNaN(depth) || isNaN(end) || isNaN(pressure)) {
+  if (isNaN(depth) || isNaN(end) || isNaN(fill)) {
     trimix_output.textContent = "모든 값을 입력하세요.";
     return;
   }
 
-  // 계산
-  const ata = +((depth * 0.1) + 1).toFixed(2);
+  // 압력 계산
+  const ata = +((depth * 0.1) + 1).toFixed(1);
   const endBar = +(((end * 0.1) + 1) * 0.79).toFixed(2);
 
-  // 수면 기준 (1 bar)
+  // 수면 기준
   const o2_surf = +(1.4 / ata).toFixed(2);
   const n2_surf = +(endBar / ata).toFixed(2);
   const he_surf = +(1 - o2_surf - n2_surf).toFixed(2);
 
-  // 다이빙 수심 기준
+  // 수심 기준
   const o2_depth = +1.4.toFixed(2);
   const n2_depth = +endBar.toFixed(2);
   const he_depth = +(ata - o2_depth - n2_depth).toFixed(2);
 
-  // 출력용 퍼센트
+  // 퍼센트로 환산
   const o2_percent = Math.round(o2_surf * 100);
   const he_percent = Math.ceil(he_surf * 100 / 5) * 5;
+  const eanx = +(o2_percent / (1 - he_percent / 100)).toFixed(2);
 
-  trimix_output.textContent =
-    `압력: ${depth}m → ${ata.toFixed(2)} bar\n` +
-    `END: ${end}m → ${endBar.toFixed(2)} bar\n\n` +
-    `구분          산소      헬륨      질소\n` +
-    `수면(1 bar)   ${o2_surf.toFixed(2)}     ${he_surf.toFixed(2)}     ${n2_surf.toFixed(2)}\n` +
-    `${depth}m(${ata.toFixed(0)} bar)   ${o2_depth.toFixed(2)}     ${he_depth.toFixed(2)}     ${n2_depth.toFixed(2)}\n\n` +
-    `➡️ 트라이믹스: TX ${o2_percent} / ${he_percent}`;
+  // 주입 압력 계산
+  const he_fill = Math.ceil(he_percent * fill / 100 * 10) / 10;
+  const o2_fill = Math.floor(((eanx - 21) / 79) * (fill - he_fill) * 10) / 10;
+  const air_fill = +(fill - he_fill - o2_fill).toFixed(1);
+  const cum1 = o2_fill.toFixed(1);
+  const cum2 = (o2_fill + he_fill).toFixed(1);
+  const cum3 = (o2_fill + he_fill + air_fill).toFixed(1);
+
+  // 출력
+  trimix_output.innerHTML = `
+  <div style="margin-bottom: 10px;">
+    압력: ${depth}m → ${ata.toFixed(1)} bar<br>
+    END: ${end}m → ${endBar.toFixed(2)} bar
+  </div>
+
+  <table border="1" cellspacing="0" cellpadding="6" style="border-collapse: collapse; text-align: center; width: 100%; font-size: 0.95em;">
+    <thead style="background: #f0f0f0;">
+      <tr>
+        <th>구분</th>
+        <th>산소</th>
+        <th>헬륨</th>
+        <th>질소</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>수면 (1 bar)</td>
+        <td>${o2_surf.toFixed(2)}</td>
+        <td>${he_surf.toFixed(2)}</td>
+        <td>${n2_surf.toFixed(2)}</td>
+      </tr>
+      <tr>
+        <td>${depth}m (${ata.toFixed(0)} bar)</td>
+        <td>${o2_depth.toFixed(2)}</td>
+        <td>${he_depth.toFixed(2)}</td>
+        <td>${n2_depth.toFixed(2)}</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div style="margin-top: 10px; font-weight: bold; font-size: 2em;">➡️ 트라이믹스: TX ${o2_percent} / ${he_percent}</div>
+
+  <table border="1" cellspacing="0" cellpadding="6" style="border-collapse: collapse; text-align: center; width: 100%; margin-top: 12px; font-size: 0.95em;">
+    <thead style="background: #f0f0f0;">
+      <tr>
+        <th>구분</th>
+        <th>주입 압력</th>
+        <th>누적 압력</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>O₂</td>
+        <td>${o2_fill.toFixed(1)} bar</td>
+        <td>${cum1} bar</td>
+      </tr>
+      <tr>
+        <td>He</td>
+        <td>${he_fill.toFixed(1)} bar</td>
+        <td>${cum2} bar</td>
+      </tr>
+      <tr>
+        <td>Air</td>
+        <td>${air_fill.toFixed(1)} bar</td>
+        <td>${cum3} bar</td>
+      </tr>
+    </tbody>
+  </table>
+`;
 }
+
+
+
 </script>
 
 </body>

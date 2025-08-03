@@ -47,11 +47,15 @@
 </head>
 <body>
   <div class="tab-container">
-    <button class="tab-button active" onclick="switchTab('rmv-single')">RMV<br>(싱글)</button>
-    <button class="tab-button" onclick="switchTab('rmv-double')">RMV<br>(더블)</button>
-    <button class="tab-button" onclick="switchTab('nitrox')">나이트록스<br>블렌딩</button>
-    <button class="tab-button" onclick="switchTab('mod')">MOD<br>계산</button>
-    <button class="tab-button" onclick="switchTab('trimix')">트라이믹스<br>블렌딩</button>
+
+    <button class="tab-button active" onclick="switchTab('rmv-single', this)">RMV<br>(싱글)</button>
+    <button class="tab-button" onclick="switchTab('rmv-double', this)">RMV<br>(더블)</button>
+    <button class="tab-button" onclick="switchTab('nitrox', this)">나이트록스<br>블렌딩</button>
+    <button class="tab-button" onclick="switchTab('mod', this)">MOD<br>계산</button>
+    <button class="tab-button" onclick="switchTab('trimix', this)">트라이믹스<br>블렌딩</button>
+    <button class="tab-button" onclick="switchTab('trimix-topup', this)">트라이믹스<br>탑업</button>
+
+    
   </div>
 
   <div id="rmv-single" class="tab-content active">
@@ -109,13 +113,35 @@
     <button onclick="calcTrimix()">계산</button>
     <div id="trimix_output" class="output"></div>
   </div>
+
+  <div id="trimix-topup" class="tab-content">
+  <h3>트라이믹스 탑업 (He → O₂ → Air)</h3>
+
+  <h4>현재</h4>
+  <input id="tu_pc"  type="number" placeholder="현재 압력 (bar)" />
+  <input id="tu_o2c" type="number" placeholder="현재 O₂ (%)" />
+  <input id="tu_hec" type="number" placeholder="현재 He (%)" />
+
+  <h4>목표</h4>
+  <input id="tu_pf"  type="number" placeholder="최종 압력 (bar)" />
+  <input id="tu_o2t" type="number" placeholder="목표 O₂ (%)" />
+  <input id="tu_het" type="number" placeholder="목표 He (%)" />
+
+  <button onclick="calcTrimixTopupBars()">계산</button>
+  <div id="tu_output" class="output"></div>
+  </div>
+
+
+
 <script>
-  function switchTab(tabId) {
-    document.querySelectorAll(".tab-content").forEach(el => el.classList.remove("active"));
-    document.querySelectorAll(".tab-button").forEach(btn => btn.classList.remove("active"));
-    document.getElementById(tabId).classList.add("active");
-    event.target.classList.add("active");
-  }
+
+
+  function switchTab(tabId, el) {
+  document.querySelectorAll(".tab-content").forEach(e => e.classList.remove("active"));
+  document.querySelectorAll(".tab-button").forEach(b => b.classList.remove("active"));
+  document.getElementById(tabId).classList.add("active");
+  if (el) el.classList.add("active");
+}
 
   function calcRMVSingle() {
     const P1 = parseFloat(rs_in.value);
@@ -242,7 +268,7 @@ function calcTrimix() {
     </tbody>
   </table>
 
-  <div style="margin-top: 10px; font-weight: bold; font-size: 2em;">➡️ 트라이믹스: TX ${o2_percent} / ${he_percent}</div>
+  <div style="margin-top: 10px; font-weight: bold; font-size: 2em;">➡️ TX ${o2_percent} / ${he_percent}</div>
 
   <table border="1" cellspacing="0" cellpadding="6" style="border-collapse: collapse; text-align: center; width: 100%; margin-top: 12px; font-size: 0.95em;">
     <thead style="background: #f0f0f0;">
@@ -272,6 +298,114 @@ function calcTrimix() {
   </table>
 `;
 }
+
+function calcTrimixTopupBars(){
+    const Pc   = parseFloat(document.getElementById('tu_pc').value);
+    const Pf   = parseFloat(document.getElementById('tu_pf').value);
+    const FO2c = (parseFloat(document.getElementById('tu_o2c').value) || 0) / 100;
+    const FHEc = (parseFloat(document.getElementById('tu_hec').value) || 0) / 100;
+    const FO2t = (parseFloat(document.getElementById('tu_o2t').value) || 0) / 100;
+    const FHEt = (parseFloat(document.getElementById('tu_het').value) || 0) / 100;
+
+    const out = document.getElementById('tu_output');
+    const eps = 1e-9;
+
+    if ([Pc,Pf].some(isNaN)) { out.textContent = '현재압력, 목표압력를 입력하세요.'; return; }
+    if (isNaN(FO2c) || isNaN(FHEc) || isNaN(FO2t) || isNaN(FHEt)) { out.textContent = 'O₂%, He%를 모두 입력하세요.'; return; }
+    if (Pf < Pc) { out.textContent = '목표 압력은 현재 압력보다 커야 됩니다.'; return; }
+    if (FO2c < -eps || FHEc < -eps || (1-FO2c-FHEc) < -eps) { out.textContent = '현재 조성 합계가 100%를 초과합니다.'; return; }
+    if (FO2t < -eps || FHEt < -eps || (1-FO2t-FHEt) < -eps) { out.textContent = '목표 조성 합계가 100%를 초과합니다.'; return; }
+
+    const PO2_c = FO2c * Pc;
+    const PHe_c = FHEc * Pc;
+
+    const PHe_target = FHEt * Pf;
+    let dP_He = PHe_target - PHe_c;
+    if (dP_He < -eps) { out.textContent = '헬륨 과다: 배출 없이 목표 He%로 낮출 수 없습니다.'; return; }
+    if (Pc + dP_He > Pf + eps) { out.textContent = '헬륨 주입만으로 최종압을 초과합니다.'; return; }
+    const P1 = Pc + dP_He;
+
+    let dP_O2 = (FO2t*Pf - PO2_c - 0.21*(Pf - Pc - dP_He)) / 0.79;
+
+    if (dP_O2 < 0) {
+      const FO2_attain = (PO2_c + 0.21*(Pf - Pc - dP_He)) / Pf;
+      if (Math.abs(FO2_attain - FO2t) <= 0.002) {
+        dP_O2 = 0;
+      } else {
+        out.textContent = '산소 주입 없이 목표 O₂% 불가 (배출/전략 변경 필요)'; return;
+      }
+    }
+
+    const P2 = P1 + dP_O2;
+
+    const dP_Air = Pf - P2;
+    if (dP_Air < -eps) { out.textContent = '산소 주입 과다: 남은 압력이 음수입니다.'; return; }
+
+// ---------- 렌더링(현재 상단, 표, 목표 하단) ----------
+const f1   = x => (Math.round(x*10)/10).toFixed(1);
+const pct0 = x => Math.round(x*100);
+
+// 누적압(절대압)
+const cum0 = Pc;
+const cum1 = Pc + dP_He;
+const cum2 = Pc + dP_He + dP_O2;
+const cum3 = Pf;
+
+// 종료 조성(검증/표시용 필요시 사용)
+const PO2_f = PO2_c + dP_O2 + 0.21*(Pf - Pc - dP_He - dP_O2);
+const PHe_f = PHe_c + dP_He;
+const FO2_f = (Pf>0)? PO2_f/Pf : 0;
+const FHe_f = (Pf>0)? PHe_f/Pf : 0;
+
+out.innerHTML = `
+  <div style="margin-top: 1px; font-weight: bold; font-size: 1.5em;">➡️ 현재 : TX ${pct0(FO2c)} / ${pct0(FHEc)}</div>
+  <div style="margin-top: 1px; font-weight: bold; font-size: 1.5em;">➡️ 목표 : TX ${pct0(FO2t)} / ${pct0(FHEt)}</div>
+
+
+  <!-- 혼합 표 (He→O₂→Air, 현재압부터 누적) -->
+  <table border="1" cellspacing="0" cellpadding="8"
+         style="border-collapse:collapse;width:100%;text-align:center;font-size:0.95em;background:#fff;">
+    <thead style="background:#f0f0f0;">
+      <tr>
+        <th>구분</th>
+        <th>주입 압력</th>
+        <th>누적 압력</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="font-weight:700;background:#fafafa;">Start</td>
+        <td>-</td>
+        <td>${f1(cum0)} bar</td>
+      </tr>
+      <tr>
+        <td>He</td>
+        <td>${f1(dP_He)} bar</td>
+        <td>${f1(cum1)} bar</td>
+      </tr>
+      <tr>
+        <td>O₂</td>
+        <td>${f1(dP_O2)} bar</td>
+        <td>${f1(cum2)} bar</td>
+      </tr>
+      <tr>
+        <td>Air</td>
+        <td>${f1(Pf - cum2)} bar</td>
+        <td>${f1(cum3)} bar</td>
+      </tr>
+    </tbody>
+  </table>
+
+   
+  
+`;
+
+
+
+
+}
+
+
 
 
 
